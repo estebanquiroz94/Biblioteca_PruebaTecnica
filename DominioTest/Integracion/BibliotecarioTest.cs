@@ -37,7 +37,7 @@ namespace DominioTest.Integracion
             repositorioLibro.Agregar(libro);
             Bibliotecario bibliotecario = new Bibliotecario(repositorioLibro, repositorioPrestamo);
 
-            // Act
+            // Acta
             bibliotecario.Prestar(libro.Isbn, "Juan");
 
             // Assert

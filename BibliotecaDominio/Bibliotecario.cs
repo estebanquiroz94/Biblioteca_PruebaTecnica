@@ -1,7 +1,6 @@
 ﻿using BibliotecaDominio.IRepositorio;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace BibliotecaDominio
 {
@@ -9,8 +8,8 @@ namespace BibliotecaDominio
     {
         public const string EL_LIBRO_NO_SE_ENCUENTRA_DISPONIBLE = "El libro no se encuentra disponible";
         private bool esPalindromo = false;
-        private  IRepositorioLibro libroRepositorio;
-        private  IRepositorioPrestamo prestamoRepositorio;
+        private IRepositorioLibro libroRepositorio;
+        private IRepositorioPrestamo prestamoRepositorio;
 
         public Bibliotecario(IRepositorioLibro libroRepositorio, IRepositorioPrestamo prestamoRepositorio)
         {
@@ -20,11 +19,44 @@ namespace BibliotecaDominio
 
         public void Prestar(string isbn, string nombreUsuario)
         {
-            //Se valida si el ISBN es palíndromo o no
-            esPalindromo = EsPalindromo(isbn);
+            string respuesta = string.Empty;
+            int sumaIsbn = 0;
+            //Se obtiene el libro del repositorio para verificar existencia.
+            var libroPrestamo = libroRepositorio.ObtenerPorIsbn(isbn);
 
-            //prestamoRepositorio.Agregar();
+            if (libroPrestamo != null)
+            {
+                //Se obtiene prestamo de libro por isbn
+                var libroPrestado = prestamoRepositorio.ObtenerLibroPrestadoPorIsbn(isbn);
 
+                //Se verifica si puede ser prestado o no el libro.
+                if (libroPrestado == null)
+                {
+                    //Se valida si el ISBN es palíndromo o no
+                    esPalindromo = EsPalindromo(isbn);
+
+                    if (esPalindromo)
+                        respuesta = "los libros palíndromos solo se pueden utilizar en la biblioteca";
+                    else
+                    {
+                        for (int i = 0; i < isbn.Length; i++)
+                        {
+                            if(Char.IsNumber(isbn[i]))
+                                sumaIsbn += Convert.ToInt32(isbn[i].ToString());
+                        }
+                    }
+
+                    //Instancia objeto libro
+                    Prestamo a = new Prestamo(DateTime.Now, libroPrestamo, DateTime.Now, nombreUsuario);
+
+                    //Se agrega préstamo a repositorio
+                    prestamoRepositorio.Agregar(a);
+                }
+                else
+                {
+
+                }
+            }
             throw new Exception("se debe implementar este método");
         }
 
