@@ -15,8 +15,10 @@ namespace DominioTest.Integracion
     public class BibliotecarioTest
     {
         public const String CRONICA_UNA_MUERTE_ANUNCIADA = "Cronica de una muerte anunciada";
-        private  BibliotecaContexto contexto;
-        private  RepositorioLibroEF repositorioLibro;
+        public const String ISBN_INCORECTO = "101052";
+        public const String ISBN_PALINDROMO = "125521";
+        private BibliotecaContexto contexto;
+        private RepositorioLibroEF repositorioLibro;
         private RepositorioPrestamoEF repositorioPrestamo;
 
 
@@ -25,7 +27,7 @@ namespace DominioTest.Integracion
         {
             var optionsBuilder = new DbContextOptionsBuilder<BibliotecaContexto>();
             contexto = new BibliotecaContexto(optionsBuilder.Options);
-            repositorioLibro  = new RepositorioLibroEF(contexto);
+            repositorioLibro = new RepositorioLibroEF(contexto);
             repositorioPrestamo = new RepositorioPrestamoEF(contexto, repositorioLibro);
         }
 
@@ -55,7 +57,7 @@ namespace DominioTest.Integracion
             Bibliotecario bibliotecario = new Bibliotecario(repositorioLibro, repositorioPrestamo);
 
             // Act
-            bibliotecario.Prestar(libro.Isbn,"Juan");
+            bibliotecario.Prestar(libro.Isbn, "Juan");
             try
             {
                 bibliotecario.Prestar(libro.Isbn, "Juan");
@@ -66,8 +68,41 @@ namespace DominioTest.Integracion
                 // Assert
                 Assert.AreEqual("El libro no se encuentra disponible", err.Message);
             }
-        
-        }
 
+        }
+        [TestMethod]
+        public void PrestarLibroNoExistenteTest()
+        {
+                Libro libro = new LibroTestDataBuilder().ConTitulo(CRONICA_UNA_MUERTE_ANUNCIADA).Build();
+                repositorioLibro.Agregar(libro);
+                Bibliotecario bibliotecario = new Bibliotecario(repositorioLibro, repositorioPrestamo);
+            try
+            {
+                bibliotecario.Prestar(ISBN_INCORECTO, "Esteban");
+                Assert.Fail();
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("El libro solicitado no se encuentra registrado", error.Message);
+            }
+
+        }
+        [TestMethod]
+        public void PrestarLibroIsbnPalindromoTest()
+        {
+            Libro libro = new LibroTestDataBuilder().ConTitulo(CRONICA_UNA_MUERTE_ANUNCIADA).ConIsbn(ISBN_PALINDROMO).Build();
+            repositorioLibro.Agregar(libro);
+            Bibliotecario bibliotecario = new Bibliotecario(repositorioLibro, repositorioPrestamo);
+            try
+            {
+                bibliotecario.Prestar(libro.Isbn, "Esteban");
+                Assert.Fail();
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("los libros palíndromos solo se pueden utilizar en la biblioteca", error.Message);
+            }
+
+        }
     }
 }

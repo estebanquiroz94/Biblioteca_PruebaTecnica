@@ -33,7 +33,7 @@ namespace BibliotecaDominio
             DateTime fechaEntregaMaxima = DateTime.Now;
             string respuesta = string.Empty;
             int sumaIsbn = 0;
-            
+
             #endregion
 
             //Se obtiene el libro del repositorio para verificar existencia.
@@ -44,28 +44,18 @@ namespace BibliotecaDominio
                 //Se verifica si puede ser prestado o no el libro.
                 if (!EsPrestado(isbn))
                 {
-                    //Se valida si el ISBN es palíndromo o no
+                    //Se valida si el Isbn es palíndromo o no
                     esPalindromo = EsPalindromo(isbn);
 
                     if (esPalindromo)
-                        respuesta = "los libros palíndromos solo se pueden utilizar en la biblioteca";
+                        throw new Exception("los libros palíndromos solo se pueden utilizar en la biblioteca");
                     else
                     {
-                        //Se realiza la suma de los numeros
-                        for (int i = 0; i < isbn.Length; i++)
-                        {
-                            if (Char.IsNumber(isbn[i]))
-                                sumaIsbn += Convert.ToInt32(isbn[i].ToString());
-                        }
+                        //Suma caracteres Isbn
+                        sumaIsbn = SumarIsbn(isbn);
 
-                        //Validar sumatoria de los dígitos del ISBN
-                        if (sumaIsbn > 30)
-                        {
-                            fechaEntregaMaxima.AddDays(16);
-
-                            if (fechaEntregaMaxima.DayOfWeek == DayOfWeek.Sunday)
-                                fechaEntregaMaxima.AddDays(1);
-                        }
+                        //Calcula fecha máxima de entrega
+                        fechaEntregaMaxima = CalcularFechaMaximaEntrega(sumaIsbn);
                     }
 
                     //Instancia objeto libro
@@ -75,10 +65,49 @@ namespace BibliotecaDominio
                     prestamoRepositorio.Agregar(prestamoLibro);
                 }
                 else
-                   throw new Exception("El libro no se encuentra disponible");
+                    throw new Exception("El libro no se encuentra disponible");
             }
             else
-                respuesta = "El libro solicitado no se encuentra registrado";
+                throw new Exception("El libro solicitado no se encuentra registrado");
+        }
+        /// <summary>
+        /// Suma los caracteres del Isbn
+        /// </summary>
+        /// <param name="isbn">Isbn unico del libro</param>
+        /// <returns></returns>
+        public int SumarIsbn(string isbn)
+        {
+            int sumaIsbn = 0;
+
+            //Se realiza la suma de los numeros
+            for (int i = 0; i < isbn.Length; i++)
+            {
+                if (Char.IsNumber(isbn[i]))
+                    sumaIsbn += Convert.ToInt32(isbn[i].ToString());
+            }
+
+            return sumaIsbn;
+        }
+        /// <summary>
+        /// Calcula fecha máxima de entrega 
+        /// </summary>
+        /// <param name="sumaIsbn">Suma de caracteres de Isbn</param>
+        /// <returns></returns>
+        public DateTime CalcularFechaMaximaEntrega(int sumaIsbn)
+        {
+            DateTime fechaEntregaMaxima = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+            if (sumaIsbn > 30)
+            {
+                fechaEntregaMaxima = fechaEntregaMaxima.AddDays(17);
+
+                if (fechaEntregaMaxima.DayOfWeek == DayOfWeek.Sunday)
+                    fechaEntregaMaxima.AddDays(1);
+
+                return fechaEntregaMaxima;
+            }
+            else
+                return new DateTime(0001, 01, 01);
+
         }
 
         /// <summary>
@@ -86,7 +115,7 @@ namespace BibliotecaDominio
         /// </summary>
         /// <param name="isbn">ISBN Unico del libro</param>
         /// <returns></returns>
-        private bool EsPalindromo(string isbn)
+        public bool EsPalindromo(string isbn)
         {
             if (isbn.Length <= 2) return true;
             else
@@ -96,7 +125,7 @@ namespace BibliotecaDominio
         /// <summary>
         /// Verifica si un libro se encuentra prestado o no
         /// </summary>
-        /// <param name="isbn">ISBN Unico del libro</param>
+        /// <param name="isbn">Isbn Unico del libro</param>
         /// <returns></returns>
         public bool EsPrestado(string isbn)
         {
