@@ -50,6 +50,9 @@ namespace BibliotecaRepositorio.Repositorio
             {
                 LibroEntidad = libroEntidad,
                 FechaSolicitud = prestamo.FechaSolicitud,
+                FechaEntregaMaxima = prestamo.FechaEntregaMaxima,
+                NombreUsuario = prestamo.NombreUsuario,
+                LibroEntidadId = libroEntidad.Id
             };
 
             return prestamoEntidad;
